@@ -6,6 +6,9 @@ Open `index.html` in a browser, or visit the GitHub Pages site.
 
 ## Changelog
 
+### 1.0.2 — 2026-11-23
+- Removed the Google Fonts dependency; the page now uses system fonts and makes no third-party requests.
+
 ### 1.0.1 — 2026-11-23
 - Renamed `password-generator.html` to `index.html` for GitHub Pages.
 
