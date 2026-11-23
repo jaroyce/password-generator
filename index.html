@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="version" content="1.0.2">
+<meta name="version" content="1.0.3">
 <title>Strong Password Generator</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -373,6 +373,8 @@
     line-height: 1.6;
     font-family: var(--mono);
   }
+  .note .version { margin-left: 0.75em; white-space: nowrap; }
+  .note .version:empty { display: none; }
 </style>
 </head>
 <body>
@@ -433,12 +435,18 @@
     <div class="bulk-list" id="bulk-list"></div>
   </div>
 
-  <p class="note">All generation happens in your browser. Nothing is sent to any server.</p>
+  <p class="note">All generation happens in your browser. Nothing is sent to any server.<span class="version" id="app-version"></span></p>
 </div>
 
 <div id="toast">Copied!</div>
 
 <script>
+  (function () {
+    var meta = document.querySelector('meta[name="version"]');
+    var el = document.getElementById('app-version');
+    if (meta && el) el.textContent = 'v' + meta.content;
+  })();
+
 const UPPER='ABCDEFGHIJKLMNOPQRSTUVWXYZ',LOWER='abcdefghijklmnopqrstuvwxyz',DIGITS='0123456789',SYMS='!@#$%^&*()-_=+[]{}|;:,.<>?';
 const AMBIG=/[O0Il1]/g;
 
