@@ -1,0 +1,15 @@
+{
+  "name": "Squarefrog Password Generator",
+  "short_name": "Passwords",
+  "description": "Strong random, memorable and PIN passwords, generated in your browser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5f7",
+  "theme_color": "#ef0c77",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
