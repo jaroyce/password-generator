@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="version" content="1.1.0">
+<meta name="version" content="1.2.0">
 <title>Squarefrog Password Generator</title>
 <meta name="description" content="Strong random, memorable and PIN passwords, generated in your browser. Nothing is sent anywhere.">
 <meta name="theme-color" content="#ef0c77">
@@ -91,7 +91,7 @@ header .icon-btn { border-color: var(--line); }
 
 .opts { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 .field { margin-bottom: 14px; }
-.field > label, .field-label { display: block; font-weight: 500; font-size: .9rem; margin: 0 0 4px; }
+.field > label:not(.check), .field-label { display: block; font-weight: 500; font-size: .9rem; margin: 0 0 4px; }
 .range { display: flex; align-items: center; gap: 12px; }
 .range input { flex: 1; min-width: 0; accent-color: var(--accent); }
 .range output { min-width: 2.5ch; text-align: right; font: 500 1rem var(--mono); color: var(--accent-text); font-variant-numeric: tabular-nums; }
@@ -103,6 +103,7 @@ select { min-height: 42px; }
 .sep-row select { flex: 1; }
 .sep-row input { flex: 0 0 110px; font-family: var(--mono); }
 .check { display: flex; align-items: center; gap: 10px; font-size: .95rem; margin: 8px 0; cursor: pointer; }
+.field > .check { min-height: 42px; margin: 0; } /* line up with the selects beside it */
 input[type=checkbox] { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
@@ -161,6 +162,7 @@ button.primary:disabled, .btn:disabled { opacity: .5; cursor: default; filter: n
       <button type="button" role="tab" id="tab-random" data-mode="random" aria-controls="opts-random">Random</button>
       <button type="button" role="tab" id="tab-memorable" data-mode="memorable" aria-controls="opts-memorable">Memorable</button>
       <button type="button" role="tab" id="tab-pin" data-mode="pin" aria-controls="opts-pin">PIN</button>
+      <button type="button" role="tab" id="tab-hex" data-mode="hex" aria-controls="opts-hex">Hex</button>
     </div>
 
     <div class="output">
@@ -268,6 +270,28 @@ button.primary:disabled, .btn:disabled { opacity: .5; cursor: default; filter: n
       <p class="hint">PINs are only safe where wrong attempts are limited, like a phone lock screen or bank card. Don't use one as a website password.</p>
     </div>
 
+    <!-- Hex -->
+    <div class="opts" id="opts-hex" role="tabpanel" aria-labelledby="tab-hex" hidden>
+      <div class="field">
+        <label for="h-len">Characters</label>
+        <div class="range"><input type="range" id="h-len" min="4" max="128" step="1"><output for="h-len" id="h-len-val"></output></div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="h-case">Letters</label>
+          <select id="h-case">
+            <option value="lower">lowercase (a–f)</option>
+            <option value="upper">UPPERCASE (A–F)</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">Extras</span>
+          <label class="check"><input type="checkbox" id="h-prefix">Add 0x prefix</label>
+        </div>
+      </div>
+      <p class="hint">Each hex character adds 4 bits: 32 characters = 128 bits, 64 = 256 bits. Useful for keys, tokens and secrets.</p>
+    </div>
+
     <div class="actions">
       <button class="primary" id="gen-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>Generate new</button>
       <button class="btn" id="copy-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy to clipboard</button>
@@ -318,6 +342,7 @@ var LOOKALIKES = /[O0Il1|]/g;
 var MEM_SYMS = '!@#$%&*?+=';
 var NUM_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 var STORE_KEY = 'sfpg.settings.v1';
+var MODES = ['random', 'memorable', 'pin', 'hex'];
 var GUESSES_PER_SEC = 1e10;
 
 var DEFAULTS = {
@@ -326,6 +351,7 @@ var DEFAULTS = {
   random: { len: 20, uc: true, lc: true, num: true, sym: true, amb: false, nodup: false, each: true },
   memorable: { words: 5, sep: '-', sepCustom: '', caps: 'first', nums: '1', numPos: 'end', numStyle: 'digits', symbol: false },
   pin: { len: 6 },
+  hex: { len: 32, upper: 'lower', prefix: false },
   bulkN: 5,
   clearClip: false
 };
@@ -424,9 +450,17 @@ function pinPassword(o) {
   return { pw: pw, bits: o.len * log2(10), note: '' };
 }
 
+/* ---------- Hex ---------- */
+function hexPassword(o) {
+  var chars = o.upper === 'upper' ? '0123456789ABCDEF' : '0123456789abcdef', pw = '';
+  for (var i = 0; i < o.len; i++) pw += chars[rand(16)];
+  return { pw: (o.prefix ? '0x' : '') + pw, bits: o.len * 4, note: '' };
+}
+
 function make(s) {
   if (s.mode === 'memorable') return memorablePassword(s.memorable);
   if (s.mode === 'pin') return pinPassword(s.pin);
+  if (s.mode === 'hex') return hexPassword(s.hex);
   return randomPassword(s.random);
 }
 
@@ -461,6 +495,7 @@ function readSettings() {
     random: { len: +$('r-len').value, uc: $('r-uc').checked, lc: $('r-lc').checked, num: $('r-num').checked, sym: $('r-sym').checked, amb: $('r-amb').checked, nodup: $('r-nodup').checked, each: $('r-each').checked },
     memorable: { words: +$('m-words').value, sep: $('m-sep').value, sepCustom: $('m-sep-custom').value, caps: $('m-caps').value, nums: $('m-nums').value, numPos: $('m-numpos').value, numStyle: $('m-numstyle').value, symbol: $('m-symbol').checked },
     pin: { len: +$('p-len').value },
+    hex: { len: +$('h-len').value, upper: $('h-case').value, prefix: $('h-prefix').checked },
     bulkN: +$('bulk-n').value,
     clearClip: $('clear-clip').checked
   };
@@ -472,6 +507,7 @@ function applySettings(s) {
   $('m-words').value = m.words; $('m-sep').value = m.sep; $('m-sep-custom').value = m.sepCustom; $('m-caps').value = m.caps;
   $('m-nums').value = m.nums; $('m-numpos').value = m.numPos; $('m-numstyle').value = m.numStyle; $('m-symbol').checked = m.symbol;
   $('p-len').value = s.pin.len;
+  $('h-len').value = s.hex.len; $('h-case').value = s.hex.upper; $('h-prefix').checked = s.hex.prefix;
   $('bulk-n').value = s.bulkN;
   $('clear-clip').checked = s.clearClip;
   setTheme(s.theme);
@@ -523,13 +559,15 @@ function syncLabels() {
   $('r-len-val').textContent = $('r-len').value;
   $('m-words-val').textContent = $('m-words').value;
   $('p-len-val').textContent = $('p-len').value;
+  $('h-len-val').textContent = $('h-len').value;
   $('bulk-n-val').textContent = $('bulk-n').value;
   $('m-sep-custom').hidden = $('m-sep').value !== 'custom';
   $('m-numpos').disabled = $('m-numstyle').disabled = $('m-nums').value === '0';
 }
 function setMode(mode) {
-  state.mode = mode;
-  ['random', 'memorable', 'pin'].forEach(function (m) {
+  state.mode = MODES.indexOf(mode) > -1 ? mode : 'random';
+  mode = state.mode;
+  MODES.forEach(function (m) {
     var on = m === mode;
     $('tab-' + m).setAttribute('aria-selected', on);
     $('tab-' + m).tabIndex = on ? 0 : -1;
@@ -645,8 +683,8 @@ document.querySelector('[role=tablist]').addEventListener('click', function (e) 
 });
 document.querySelector('[role=tablist]').addEventListener('keydown', function (e) {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-  var modes = ['random', 'memorable', 'pin'], i = modes.indexOf(state.mode);
-  var next = modes[(i + (e.key === 'ArrowRight' ? 1 : modes.length - 1)) % modes.length];
+  var i = MODES.indexOf(state.mode);
+  var next = MODES[(i + (e.key === 'ArrowRight' ? 1 : MODES.length - 1)) % MODES.length];
   setMode(next); $('tab-' + next).focus(); generate(); updateStatus();
 });
 document.querySelector('main').addEventListener('input', function (e) {

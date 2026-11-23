@@ -9,6 +9,7 @@ Live: https://jaroyce.github.io/password-generator/
 - **Random** passwords: length 8–128, character types, exclude look-alikes, no repeats, and a guarantee of at least one of each ticked type.
 - **Memorable** passwords: 3–10 words from the EFF long wordlist, a chosen or custom separator, capitalisation styles, 0–4 numbers as digits or words ("seven"), at the start, end or between words, and an optional symbol.
 - **PIN** codes: 4–12 digits.
+- **Hex** strings: 4–128 characters, lowercase or uppercase, with an optional `0x` prefix.
 - Strength meter with bits of entropy and an estimated crack time at 10 billion guesses per second.
 - Show/hide, copy, bulk generate with "Copy all", and an optional clipboard clear after 30 seconds.
 - Light, dark or automatic theme.
@@ -20,6 +21,10 @@ Live: https://jaroyce.github.io/password-generator/
 Memorable passwords use the [EFF long wordlist](https://www.eff.org/dice), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/us/). Hyphens were removed from three words and `yo-yo` was dropped as a duplicate of `yoyo`, leaving 7,775 words.
 
 ## Changelog
+
+### 1.2.0 — 2026-11-23
+- New Hex tab: 4–128 random hex characters, lowercase or uppercase, optional `0x` prefix.
+- Fixed the alignment of checkbox rows inside option fields (Memorable "Extras").
 
 ### 1.1.0 — 2026-11-23
 - New Squarefrog styling (matches Site Crawler), with a header, light/dark/auto theme switcher, and a copyright and version footer.
